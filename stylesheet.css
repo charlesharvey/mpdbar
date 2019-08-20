@@ -1,0 +1,11 @@
+.mpdbar-panel {
+    height: 100%;
+    overflow: hidden;
+    font-size: 10px;
+}
+
+.fontawesome {
+  font-family: 'Font Awesome 5 Free';
+  display:inline-block;
+  margin-right: 5px;
+}
