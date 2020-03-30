@@ -49,6 +49,10 @@ class MpdbarIndicator extends PanelMenu.Button {
     Main.panel.addToStatusArea('mpdbar-indicator', this, 1, MENU_POSITION);
 
     this.paused = true;
+    this.isSpotify = false;
+    this.playIcon = ` `; //   PLAY;
+    this.pauseIcon = ``; //   PAUSE;
+    this.spotifyIcon = ``; //   SPOTIFY;
 
 
 
@@ -60,17 +64,37 @@ class MpdbarIndicator extends PanelMenu.Button {
     this.update = () => {
 
 
+      let now_playing_output = GLib.spawn_command_line_sync("playingnow current")[1].toString().replace("\n", "");
+      // let now_playing_output = GLib.spawn_command_line_sync("/bin/bash /home/charles/.config/nowplaying/playingnow.sh")[1].toString().replace("\n", "");
+      if (now_playing_output != '') {
+        _label.text = now_playing_output;
 
+        this.setIsSpotify();
 
-      let mpc_output = GLib.spawn_command_line_sync("mpc current ")[1].toString().replace("\n", "");
+        if (this.isSpotify) {
+          _icon.text = this.spotifyIcon;
+        } else {
+          this.setPaused();
+          _icon.text = (this.paused) ? this.pauseIcon : this.playIcon;
+        }
 
-      if (mpc_output != '') {
-        _label.text = mpc_output;
-        _icon.text = (this.paused) ? `` : ` `;
       } else {
         _label.text = '';
         _icon.text = '';
       }
+
+
+
+
+      // let mpc_output = GLib.spawn_command_line_sync("mpc current ")[1].toString().replace("\n", "");
+
+      // if (mpc_output != '') {
+      //   _label.text = mpc_output;
+      //   _icon.text = (this.paused) ? `` : ` `;
+      // } else {
+      //   _label.text = '';
+      //   _icon.text = '';
+      // }
 
 
       //  _makeRequest();
@@ -85,7 +109,7 @@ class MpdbarIndicator extends PanelMenu.Button {
     }
 
     this.updateRefreshRate = () => {
-      this.refreshRate = 2;
+      this.refreshRate = 3;
       this.removeTimer();
       this.timer = Mainloop.timeout_add_seconds(this.refreshRate, this.update.bind(this));
     }
@@ -95,23 +119,30 @@ class MpdbarIndicator extends PanelMenu.Button {
     this.onClick = () => {
 
       this.togglePlayer();
-      this.setPaused();
+
       this.update();
     }
 
-    this.setPaused = () => {
+    this.setIsSpotify = () => {
+      // let check_is_spotify = GLib.spawn_command_line_sync("cat /home/charles/.config/nowplaying/isspotify")[1].toString();
+      let check_is_spotify = GLib.spawn_command_line_sync("playingnow isspotify")[1].toString();
+      this.isSpotify = (check_is_spotify == '1' || check_is_spotify == 1);
+    }
 
+    this.setPaused = () => {
       let mpc_paused = GLib.spawn_command_line_sync("mpc")[1].toString();
       this.paused = (mpc_paused.indexOf('paused') > -1)
     }
 
     this.togglePlayer = () => {
-      let toggle = GLib.spawn_command_line_sync("mpc toggle");
+      let toggle = GLib.spawn_command_line_sync("playingnow toggle");
+      // let toggle = GLib.spawn_command_line_sync("mpc toggle");
       return toggle[0];
     }
 
     this.stopPlayer = () => {
-      let stopped = GLib.spawn_command_line_sync("mpc stop");
+      // let stopped = GLib.spawn_command_line_sync("mpc stop");
+      let stopped = GLib.spawn_command_line_sync("playingnow stop");
       return stopped[0];
     }
 
